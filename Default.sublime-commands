@@ -1,10 +1,29 @@
 [
     {
         "command": "buffer_utils_new_file",
-        "caption": "New File with Syntax"
+        "caption": "New File with Syntax",
+    },
+    {
+        "command": "buffer_utils_new_file",
+        "caption": "New Scratch File with Syntax",
+        "args": {
+            "scratch": true
+        }
     },
     {
         "command": "buffer_utils_set_syntax",
         "caption": "View: Select Syntax..."
+    },
+    {
+        "command": "buffer_utils_find_regex",
+        "caption": "Find Regex..."
+    },
+    {
+        "command": "buffer_utils_preserve_case",
+        "caption": "Preserve Case"
+    },
+    {
+        "command": "buffer_utils_normalize_selection",
+        "caption": "Normalize Selection"
     }
 ]

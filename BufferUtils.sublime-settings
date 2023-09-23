@@ -1,0 +1,6 @@
+{
+    "settings": {
+        "random_buffer_names": false,
+        "expression.persistence": true
+    }
+}
