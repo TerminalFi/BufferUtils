@@ -1,0 +1,10 @@
+[
+    {
+        "command": "buffer_utils_new_file",
+        "caption": "New File with Syntax"
+    },
+    {
+        "command": "buffer_utils_set_syntax",
+        "caption": "View: Select Syntax..."
+    }
+]
