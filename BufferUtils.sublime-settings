@@ -3,6 +3,6 @@
         "random_buffer_names": false,
         "expression.persistence": true,
         "live_selection": true,
-        "filter_view_or_panel.live_preview": false
+        "filter_view_or_panel.live_preview": true
     }
 }

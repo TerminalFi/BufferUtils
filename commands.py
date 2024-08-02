@@ -1,6 +1,6 @@
 import html
 import re
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import sublime
 import sublime_plugin
@@ -22,7 +22,7 @@ except ImportError:
 
 class BufferUtils:
     def input_description(self) -> str:
-        return "Syntax:"
+        return "Syntax"
 
 
 class BufferUtilsNewFileCommand(BufferUtils, sublime_plugin.WindowCommand):
@@ -49,7 +49,7 @@ class BufferUtilsSetSyntaxCommand(BufferUtils, sublime_plugin.TextCommand):
         return SyntaxSelectorListInputHandler(self.view, args)
 
     def input_description(self):
-        return "Syntax:"
+        return "Syntax"
 
 
 class SyntaxSelectorListInputHandler(sublime_plugin.ListInputHandler):
@@ -65,9 +65,9 @@ class SyntaxSelectorListInputHandler(sublime_plugin.ListInputHandler):
         return "syntax"
 
     def placeholder(self):
-        return "Choose a syntax..."
+        return "Choose a syntax…"
 
-    def preview(self, syntax):
+    def preview(self, syntax: str):
         if self.view:
             self.view.assign_syntax(self._prev_syntax.path)
 
@@ -132,7 +132,7 @@ class SyntaxSelectorListInputHandler(sublime_plugin.ListInputHandler):
         if self.view:
             self.view.assign_syntax(self._prev_syntax.path)
 
-    def list_items(self):
+    def list_items(self) -> Tuple[Sequence[sublime.ListInputItem], int]:
         syntax_list = sorted(
             (
                 syntax
@@ -169,13 +169,13 @@ class SyntaxSelectorListInputHandler(sublime_plugin.ListInputHandler):
 
 
 class OperationInputHandler(sublime_plugin.ListInputHandler):
-    def __init__(self, view) -> None:
-        self.view = view
+    def __init__(self, view: sublime.View) -> None:
+        self.view: sublime.View = view
 
-    def name(self):
+    def name(self) -> str:
         return "subtractive"
 
-    def list_items(self):
+    def list_items(self) -> Sequence[sublime.ListInputItem]:
         return [
             sublime.ListInputItem(
                 "Additive",
@@ -189,13 +189,13 @@ class OperationInputHandler(sublime_plugin.ListInputHandler):
             ),
         ]
 
-    def next_input(self, args):
+    def next_input(self, args) -> sublime_plugin.CommandInputHandler:
         return ExpressionInputHandler(self.view, args)
 
 
 class ExpressionInputHandler(sublime_plugin.TextInputHandler):
-    def __init__(self, view, args) -> None:
-        self.view = view
+    def __init__(self, view: sublime.View, args) -> None:
+        self.view: sublime.View = view
         self.args = args
 
     def initial_text(self) -> str:
@@ -304,7 +304,6 @@ class PreserveCase:
         )
 
     def _split_by_case(self, value: str) -> List[str]:
-        print(value)
         parts = re.findall(r"[A-Z]?[^A-Z]*", value)
         return [part for part in parts if part]
 
@@ -335,8 +334,8 @@ class PreserveCase:
 
 
 class BufferUtilsPreserveCaseCommand(PreserveCase, sublime_plugin.TextCommand):
-    def run(self, edit, value: str, **kwargs) -> None:
-        selections = [r for r in self.view.sel()]
+    def run(self, edit: sublime.Edit, value: str, **kwargs) -> None:
+        selections: Sequence[sublime.Region] = [r for r in self.view.sel()]
 
         if not sum(r.size() for r in selections):
             sublime.status_message("Cannot run preserve case on an empty selection.")
@@ -345,12 +344,12 @@ class BufferUtilsPreserveCaseCommand(PreserveCase, sublime_plugin.TextCommand):
         if isinstance(value, str):
             self.preserve_case(edit, selections, value)
 
-    def input(self, args: Dict[str, Any]):
+    def input(self, args: Dict[str, Any]) -> sublime_plugin.TextInputHandler:
         return PreserveCaseInputHandler(self.view.substr(self.view.sel()[0]), args)
 
     def preserve_case(
         self, edit: sublime.Edit, selections: Sequence[sublime.Region], value: str
-    ):
+    ) -> None:
         offset = 0
         new_strings = self.analyze_string(value).string_groups
 
@@ -366,17 +365,17 @@ class BufferUtilsPreserveCaseCommand(PreserveCase, sublime_plugin.TextCommand):
 
 
 class PreserveCaseInputHandler(sublime_plugin.TextInputHandler):
-    def __init__(self, intial_text, args) -> None:
-        self.intial_text = intial_text
-        self.args = args
+    def __init__(self, intial_text: str, args: Dict[str, Any]) -> None:
+        self.intial_text: str = intial_text
+        self.args: Dict[str, Any] = args
 
-    def name(self):
+    def name(self) -> str:
         return "value"
 
     def initial_text(self) -> str:
         return self.intial_text
 
-    def confirm(self, arg):
+    def confirm(self, arg) -> Dict[str, Any]:
         return arg
 
 
@@ -489,18 +488,16 @@ class BufferUtilsFilterViewOrPanelCommand(
             .get("settings", {})
             .get("filter_view_or_panel.live_preview", False)
         ):
-            print("here")
             return
         self.filter(int(view_or_panel_id), filter_text)
-        print("done")
 
-    def input(self, args):
+    def input(self, args) -> sublime_plugin.ListInputHandler:
         return BufferUtilsViewAndPanelListInputHandler(self.window)
 
 
 class BufferUtilsViewAndPanelListInputHandler(sublime_plugin.ListInputHandler):
     def __init__(self, window: sublime.Window) -> None:
-        self.window = window
+        self.window: sublime.Window = window
 
     def name(self) -> str:
         return "view_or_panel_id"
@@ -525,28 +522,28 @@ class BufferUtilsViewAndPanelListInputHandler(sublime_plugin.ListInputHandler):
             for name, view in views + panels
         ]
 
-    def preview(self, value):
-        return "Filter: {}".format(value)
+    def preview(self, value) -> str:
+        return f"Filter: {value}"
 
-    def next_input(self, args):
+    def next_input(self, args) -> sublime_plugin.TextInputHandler:
         return BufferUtilsFilterInputHandler(args)
 
 
 class BufferUtilsFilterInputHandler(FilterViewOrPanel, sublime_plugin.TextInputHandler):
-    def __init__(self, args) -> None:
-        self.args = args
+    def __init__(self, args: Dict[str, Any]) -> None:
+        self.args: Dict[str, Any] = args
 
-    def name(self):
+    def name(self) -> str:
         return "filter_text"
 
     def initial_text(self) -> str:
         return ""
 
-    def confirm(self, arg):
+    def confirm(self, arg) -> Dict[str, Any]:
         return arg
 
     @debounce()
-    def preview(self, value) -> Union[sublime.Html, None]:
+    def preview(self, value) -> Optional[sublime.Html]:
         if (
             not get_settings()
             .get("settings", {})

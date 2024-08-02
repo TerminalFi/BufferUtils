@@ -31,6 +31,7 @@ def get_settings():
     return sublime.load_settings(SETTINGS)
 
 
+# Adapted from LSP-Copilot
 def debounce(time_s: float = 1) -> Callable[[T_Callable], T_Callable]:
     def decorator(func: T_Callable) -> T_Callable:
         @wraps(func)
