@@ -20,12 +20,12 @@ except ImportError:
     pass
 
 
-class BufferUtils:
+class BufferUtilsHandler:
     def input_description(self) -> str:
         return "Syntax"
 
 
-class BufferUtilsNewFileCommand(BufferUtils, sublime_plugin.WindowCommand):
+class BufferUtilsNewFileCommand(BufferUtilsHandler, sublime_plugin.WindowCommand):
     def run(self, syntax: str, **kwargs) -> None:
         view = self.window.new_file(syntax=syntax)
 
@@ -40,7 +40,7 @@ class BufferUtilsNewFileCommand(BufferUtils, sublime_plugin.WindowCommand):
         return SyntaxSelectorListInputHandler(None, args)
 
 
-class BufferUtilsSetSyntaxCommand(BufferUtils, sublime_plugin.TextCommand):
+class BufferUtilsSetSyntaxCommand(BufferUtilsHandler, sublime_plugin.TextCommand):
     def run(self, _, syntax: str, **kwargs) -> None:
         self.view.set_syntax_file(syntax)
 
@@ -69,10 +69,10 @@ class SyntaxSelectorListInputHandler(sublime_plugin.ListInputHandler):
 
     def preview(self, syntax: str):
         if self.view:
-            self.view.assign_syntax(self._prev_syntax.path)
+            self.view.assign_syntax(syntax)
 
         # Extract package and file information
-        parts = syntax.path.split("/")
+        parts = syntax.split("/")
         package_name = parts[1]
         file_name = parts[-1]
 
@@ -84,47 +84,48 @@ class SyntaxSelectorListInputHandler(sublime_plugin.ListInputHandler):
         ctx = Context()
         root = ctx.html()
         with root:
-            ctx.style(
-                {
-                    "a": {
-                        "color": "color(var(--foreground) alpha(0.6))",
-                        "text-decoration": "none",
-                    },
-                    ".override": {
-                        "display": "inline-block"
-                        if supports_override_audit
-                        else "none",
-                        "color": "color(var(--foreground) alpha(0.6))",
-                        "background-color": "color(var(--foreground) alpha(0.08))",
-                        "border-radius": "4px",
-                        "padding": "0.05em 4px",
-                        "margin-top": "0.2em",
-                        "font-size": "0.9em",
-                    },
-                }
-            )
-            ctx.strong("Details ")
-            ctx.small("(Has Override)" if has_override else "")
-            with ctx.div():
-                with ctx.small():
-                    ctx.strong("Path: ")
-                    ctx.small(file_name)
+            with ctx.body():
+                ctx.style(
+                    {
+                        "a": {
+                            "color": "color(var(--foreground) alpha(0.6))",
+                            "text-decoration": "none",
+                        },
+                        ".override": {
+                            "display": "inline-block"
+                            if supports_override_audit
+                            else "none",
+                            "color": "color(var(--foreground) alpha(0.6))",
+                            "background-color": "color(var(--foreground) alpha(0.08))",
+                            "border-radius": "4px",
+                            "padding": "0.05em 4px",
+                            "margin-top": "0.2em",
+                            "font-size": "0.9em",
+                        },
+                    }
+                )
+                ctx.strong("Details ")
+                ctx.small("(Has Override)" if has_override else "")
                 with ctx.div():
-                    with ctx.div().set_classes("append", "override"):
-                        with ctx.a(
-                            href=sublime.command_url(
-                                "override_audit_create_override",
-                                {
-                                    "file": syntax.split("/")[-1],
-                                    "package": package_name,
-                                },
-                            ),
-                        ):
-                            ctx.small(
-                                "Create Override"
-                                if not has_override
-                                else "Edit Override"
-                            )
+                    with ctx.small():
+                        ctx.strong("Path: ")
+                        ctx.small(file_name)
+                    with ctx.div():
+                        with ctx.div().set_classes("append", "override"):
+                            with ctx.a(
+                                href=sublime.command_url(
+                                    "override_audit_create_override",
+                                    {
+                                        "file": syntax.split("/")[-1],
+                                        "package": package_name,
+                                    },
+                                ),
+                            ):
+                                ctx.small(
+                                    "Create Override"
+                                    if not has_override
+                                    else "Edit Override"
+                                )
 
         return sublime.Html(root.render())
 
