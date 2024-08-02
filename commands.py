@@ -270,18 +270,25 @@ class BufferUtilsFindRegexCommand(sublime_plugin.TextCommand):
         flag = sublime.IGNORECASE if not case else 0
         regions = self.view.find_all(expression, flag)
 
+        self.update_selection(regions, subtractive)
+        self.remove_empty_regions()
+
+        if get_settings().get("expression.persistence", True):
+            self.view.settings().set("bu.last_expression", expression)
+
+    def update_selection(
+        self, regions: list[sublime.Region], subtractive: bool
+    ) -> None:
         for region in regions:
             if subtractive:
                 self.view.sel().subtract(region)
             else:
                 self.view.sel().add(region)
 
+    def remove_empty_regions(self) -> None:
         for region in self.view.sel():
             if region.empty():
                 self.view.sel().subtract(region)
-
-        if get_settings().get("expression.persistence", True):
-            self.view.settings().set("bu.last_expression", expression)
 
     def input(self, args) -> Union[ExpressionInputHandler, OperationInputHandler]:
         if args.get("subtractive", None):
