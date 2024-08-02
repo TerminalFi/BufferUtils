@@ -18,13 +18,13 @@ class Case:
     MIXED = 3
 
 
-class StringMetaData:
+class StringAttributes:
     def __init__(
-        self, separator: str, cases: list[int], string_groups: list[str]
+        self, delimiter: str, case_types: list[int], groups: list[str]
     ) -> None:
-        self.separator = separator
-        self.cases = cases
-        self.string_groups = string_groups
+        self.delimiter: str = delimiter
+        self.case_types: list[int] = case_types
+        self.groups: list[str] = groups
 
 
 def get_settings():

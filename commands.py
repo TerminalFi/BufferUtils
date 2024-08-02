@@ -9,7 +9,7 @@ from vision.context import Context
 
 from .constants import VIEW_OR_PANEL_FILTER_PANEL
 from .lib.words import get_buffer_name
-from .utils import Case, MutableView, StringMetaData, debounce, get_settings
+from .utils import Case, MutableView, StringAttributes, debounce, get_settings
 
 supports_override_audit = False
 try:
@@ -290,7 +290,7 @@ class BufferUtilsFindRegexCommand(sublime_plugin.TextCommand):
 
 
 class PreserveCase:
-    def analyze_string(self, value: str) -> StringMetaData:
+    def analyze_string(self, value: str) -> StringAttributes:
         separators = "-_/. "
         separator = max(separators, key=value.count)
 
@@ -300,7 +300,7 @@ class PreserveCase:
             separator = ""
             groups = self._split_by_case(value)
 
-        return StringMetaData(
+        return StringAttributes(
             separator, [self._get_case_type(s) for s in groups], groups
         )
 
@@ -319,7 +319,7 @@ class PreserveCase:
 
     def replace_string_with_case(self, old_string: str, new_strings: List[str]) -> str:
         old_string_meta = self.analyze_string(old_string)
-        old_cases = old_string_meta.cases
+        old_cases = old_string_meta.case_types
 
         for i, current_str in enumerate(new_strings):
             case_type = old_cases[min(i, len(old_cases) - 1)]
@@ -331,7 +331,7 @@ class PreserveCase:
             elif case_type == Case.CAPITALIZED:
                 new_strings[i] = current_str.capitalize()
 
-        return old_string_meta.separator.join(new_strings)
+        return old_string_meta.delimiter.join(new_strings)
 
 
 class BufferUtilsPreserveCaseCommand(PreserveCase, sublime_plugin.TextCommand):
@@ -352,7 +352,7 @@ class BufferUtilsPreserveCaseCommand(PreserveCase, sublime_plugin.TextCommand):
         self, edit: sublime.Edit, selections: Sequence[sublime.Region], value: str
     ) -> None:
         offset = 0
-        new_strings = self.analyze_string(value).string_groups
+        new_strings = self.analyze_string(value).groups
 
         for region in selections:
             adjusted_region = sublime.Region(
