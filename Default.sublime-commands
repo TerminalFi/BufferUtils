@@ -25,5 +25,9 @@
     {
         "command": "buffer_utils_normalize_selection",
         "caption": "Normalize Selection"
+    },
+    {
+        "command": "buffer_utils_filter_view_or_panel",
+        "caption": "Filter View or Panel"
     }
 ]
