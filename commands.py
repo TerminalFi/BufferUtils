@@ -147,7 +147,7 @@ class SyntaxSelectorListInputHandler(sublime_plugin.ListInputHandler):
                 (
                     index
                     for index, syntax in enumerate(syntax_list)
-                    if syntax.path == self._prev_syntax
+                    if syntax.path == self._prev_syntax.path
                 ),
                 0,
             )
