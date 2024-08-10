@@ -1,5 +1,6 @@
 import os
 import random
+from typing import List
 
 import sublime
 
@@ -8,13 +9,13 @@ def load_words_from_file(
     filename: str = os.path.join(
         sublime.packages_path(), "BufferUtils", "lib", "words.list"
     ),
-) -> list[str]:
+) -> List[str]:
     """Load words from the specified file."""
     with open(filename, "r") as file:
         return [word.strip() for word in file.readlines()]
 
 
-def generate_random_words(num_words: int = 1, word_list: list[str] = []) -> str:
+def generate_random_words(num_words: int = 1, word_list: List[str] = []) -> str:
     """Generate a random sequence of words joined by `-`."""
     if not word_list or num_words <= 0:
         return ""
