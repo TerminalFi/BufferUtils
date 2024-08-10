@@ -14,9 +14,9 @@ class FilterViewOrPanel:
     disable_debounce = False
 
     def get_panel(self) -> None:
-        self.filter_panel = sublime.active_window().create_output_panel(
-            VIEW_OR_PANEL_FILTER_PANEL
-        )
+        if not (window := sublime.active_window()):
+            return
+        self.filter_panel = window.create_output_panel(VIEW_OR_PANEL_FILTER_PANEL)
 
     def close(self) -> None:
         if self.filter_panel:
@@ -84,11 +84,7 @@ class BufferUtilsFilterViewOrPanelCommand(
     FilterViewOrPanel, sublime_plugin.WindowCommand
 ):
     def run(self, view_or_panel_id: str, filter_text: str):
-        if (
-            get_settings()
-            .get("settings", {})
-            .get("filter_view_or_panel.live_preview", False)
-        ):
+        if get_settings(default={}).get("filter_view_or_panel.live_preview", False):
             return
         self.filter(int(view_or_panel_id), filter_text)
 
@@ -104,7 +100,8 @@ class BufferUtilsViewAndPanelListInputHandler(sublime_plugin.ListInputHandler):
         return "view_or_panel_id"
 
     def list_items(self) -> Sequence[sublime.ListInputItem]:
-        window = sublime.active_window()
+        if not (window := sublime.active_window()):
+            return
         views: Sequence[tuple[str, sublime.View]] = [
             (view.file_name() or view.name(), view) for view in window.views()
         ]
@@ -123,10 +120,10 @@ class BufferUtilsViewAndPanelListInputHandler(sublime_plugin.ListInputHandler):
             for name, view in views + panels
         ]
 
-    def preview(self, value) -> str:
+    def preview(self, value: str) -> str:
         return f"Filter View ID: {value}"
 
-    def next_input(self, args) -> sublime_plugin.TextInputHandler:
+    def next_input(self, args: Dict[str, Any]) -> sublime_plugin.TextInputHandler:
         return BufferUtilsFilterInputHandler(args)
 
 
@@ -145,11 +142,7 @@ class BufferUtilsFilterInputHandler(FilterViewOrPanel, sublime_plugin.TextInputH
 
     @debounce(disabled=FilterViewOrPanel.disable_debounce)
     def preview(self, value) -> Optional[sublime.Html]:
-        if (
-            not get_settings()
-            .get("settings", {})
-            .get("filter_view_or_panel.live_preview", False)
-        ):
+        if not get_settings(default={}).get("filter_view_or_panel.live_preview", False):
             return None
 
         total_matches = self.filter(self.args["view_or_panel_id"], value)

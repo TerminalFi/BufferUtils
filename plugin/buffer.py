@@ -63,7 +63,7 @@ class ExpressionInputHandler(sublime_plugin.TextInputHandler):
             ):
                 return None
 
-        if not get_settings().get("settings", {}).get("live_selection", True):
+        if not get_settings(default={}).get("live_selection", True):
             return
 
         if not value:
@@ -85,13 +85,13 @@ class ExpressionInputHandler(sublime_plugin.TextInputHandler):
         )
 
         return sublime.Html(
-            "<strong>Expression:</strong> <em>{0}</em><br/>".format(html.escape(value))
-            + "<strong>Instances:</strong> <em>{0}</em><br/>".format(
+            "<strong>Expression:</strong> <em>{}</em><br/>"
+            "<strong>Instances:</strong> <em>{}</em><br/>"
+            "<strong>Selections:</strong> <em>{}</em><br/>".format(
+                html.escape(value),
+                len(self.view.get_regions(EXPRESSION_PREVIEW_REGION)),
                 len(self.view.get_regions(EXPRESSION_PREVIEW_REGION))
-            )
-            + "<strong>Selections:</strong> <em>{0}</em><br/>".format(
-                len(self.view.get_regions(EXPRESSION_PREVIEW_REGION))
-                + len(self.view.sel())
+                + len(self.view.sel()),
             )
         )
 
@@ -110,9 +110,7 @@ class ExpressionInputHandler(sublime_plugin.TextInputHandler):
             "region.greenish" if operation == Operation.ADDITIVE else "region.redish"
         )
 
-        preview_scope = (
-            get_settings().get("settings", {}).get(scope_setting, default_scope)
-        )
+        preview_scope = get_settings(default={}).get(scope_setting, default_scope)
         return operation, preview_scope
 
     def update_selection(
@@ -127,7 +125,7 @@ class ExpressionInputHandler(sublime_plugin.TextInputHandler):
     def cancel(self) -> None:
         self.view.erase_regions(EXPRESSION_PREVIEW_REGION)
 
-        if not get_settings().get("settings", {}).get("expression.persistence", True):
+        if not get_settings(default={}).get("expression.persistence", True):
             self.view.settings().set("bu.last_expression", "")
 
 
