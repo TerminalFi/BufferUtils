@@ -3,10 +3,18 @@
         "listeners": {
             "new_file": false
         },
-        "random_buffer_names": false,
-        "expression.persistence": true,
-        "live_selection": true,
-        "filter_view_or_panel.live_preview": true,
-        "delayed_filtering": true
+        "find": {
+            "preview": true,
+            "persist_expression": true,
+            "regex_additive_scope": "region.greenish",
+            "regex_substractive_scope": "region.redish"
+        },
+        "buffer": {
+            "assign_random_name": false,
+        },
+        "filter": {
+            "preview": true,
+            "delayed_preview": true
+        }
     }
 }

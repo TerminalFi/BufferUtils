@@ -84,7 +84,7 @@ class BufferUtilsFilterViewOrPanelCommand(
     FilterViewOrPanel, sublime_plugin.WindowCommand
 ):
     def run(self, view_or_panel_id: str, filter_text: str):
-        if get_settings(default={}).get("filter_view_or_panel.live_preview", False):
+        if get_settings(key=["settings", "filter"]).get("preview", True):
             return
         self.filter(int(view_or_panel_id), filter_text)
 
@@ -142,7 +142,7 @@ class BufferUtilsFilterInputHandler(FilterViewOrPanel, sublime_plugin.TextInputH
 
     @debounce(disabled=FilterViewOrPanel.disable_debounce)
     def preview(self, value) -> Optional[sublime.Html]:
-        if not get_settings(default={}).get("filter_view_or_panel.live_preview", False):
+        if not get_settings(key=["settings", "filter"]).get("preview", False):
             return None
 
         total_matches = self.filter(self.args["view_or_panel_id"], value)

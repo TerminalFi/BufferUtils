@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import threading
 from functools import wraps
-from typing import Any, Callable, TypeVar, cast
+from typing import Any, Callable, List, TypeVar, cast
 
 import sublime
 
@@ -27,9 +27,16 @@ class StringAttributes:
         self.groups: list[str] = groups
 
 
-def get_settings(key: str = "settings", default: Any = None):
+def get_settings(key: str | List[str] = "settings", default: Any = None):
     settings = sublime.load_settings(SETTINGS)
     if key:
+        if isinstance(key, list):
+            result = settings
+            for k in key:
+                result = result.get(k, default)
+                if result is default:
+                    break
+            return result
         return settings.get(key, default)
     return settings
 

@@ -8,9 +8,26 @@ import sublime
 import sublime_plugin
 from more_itertools import first_true
 
-from .constants import EXPRESSION_PREVIEW_REGION
+from ..lib.words import get_buffer_name
+from .common import BufferUtilsHandler
+from .constants import EXPRESSION_PREVIEW_REGION, LAST_EXPRESSION
 from .enum import Operation
+from .syntax import SyntaxSelectorListInputHandler
 from .utils import Case, StringAttributes, get_settings
+
+
+class BufferUtilsNewFileCommand(BufferUtilsHandler, sublime_plugin.WindowCommand):
+    def run(self, syntax: str, **kwargs) -> None:
+        view = self.window.new_file(syntax=syntax)
+
+        if get_settings(key=["settings", "file"]).get("assign_random_name", True):
+            view.set_name(get_buffer_name())
+
+        if kwargs.get("scratch", False):
+            view.set_scratch(True)
+
+    def input(self, args) -> sublime_plugin.CommandInputHandler:
+        return SyntaxSelectorListInputHandler(None, args)
 
 
 class OperationInputHandler(sublime_plugin.ListInputHandler):
@@ -45,7 +62,7 @@ class ExpressionInputHandler(sublime_plugin.TextInputHandler):
         self.previous_selections = [r for r in self.view.sel()]
 
     def initial_text(self) -> str:
-        return self.view.settings().get("bu.last_expression", "")
+        return self.view.settings().get(LAST_EXPRESSION, "")
 
     def confirm(self, arg):
         self.view.erase_regions(EXPRESSION_PREVIEW_REGION)
@@ -63,7 +80,7 @@ class ExpressionInputHandler(sublime_plugin.TextInputHandler):
             ):
                 return None
 
-        if not get_settings(default={}).get("live_selection", True):
+        if not get_settings(key=["settings", "find"]).get("preview", True):
             return
 
         if not value:
@@ -102,15 +119,14 @@ class ExpressionInputHandler(sublime_plugin.TextInputHandler):
             else Operation.SUBTRACTIVE
         )
         scope_setting = (
-            "find.regex.additive.scope"
+            "regex_additive_scope"
             if operation == Operation.ADDITIVE
-            else "find.regex.subtractive.scope"
-        )
-        default_scope = (
-            "region.greenish" if operation == Operation.ADDITIVE else "region.redish"
+            else "regex_subtractive_scope"
         )
 
-        preview_scope = get_settings(default={}).get(scope_setting, default_scope)
+        preview_scope = get_settings(key=["settings", "find"]).get(
+            scope_setting, "invalid"
+        )
         return operation, preview_scope
 
     def update_selection(
@@ -125,8 +141,8 @@ class ExpressionInputHandler(sublime_plugin.TextInputHandler):
     def cancel(self) -> None:
         self.view.erase_regions(EXPRESSION_PREVIEW_REGION)
 
-        if not get_settings(default={}).get("expression.persistence", True):
-            self.view.settings().set("bu.last_expression", "")
+        if not get_settings(key=["settings", "find"]).get("persist_expression", True):
+            self.view.settings().set(LAST_EXPRESSION, "")
 
 
 class BufferUtilsFindRegexCommand(sublime_plugin.TextCommand):
@@ -137,8 +153,8 @@ class BufferUtilsFindRegexCommand(sublime_plugin.TextCommand):
         self.update_selection(regions, subtractive)
         self.remove_empty_regions()
 
-        if get_settings().get("expression.persistence", True):
-            self.view.settings().set("bu.last_expression", expression)
+        if get_settings(key=["settings", "find"]).get("persist_expression", True):
+            self.view.settings().set(LAST_EXPRESSION, expression)
 
     def update_selection(
         self, regions: List[sublime.Region], subtractive: bool
@@ -258,30 +274,35 @@ class BufferUtilsNormalizeSelectionCommand(sublime_plugin.TextCommand):
             return
 
         regions = (
-            self.normalize_regions(selection)
-            if not self.are_regions_normalized(selection)
-            else self.invert_regions(selection)
+            self.normalize(selection)
+            if not self.is_normalized(selection)
+            else self.invert(selection)
         )
 
         selection.clear()
         selection.add_all(regions)
 
-        region = self.find_first_visible_region()
-        if region:
-            self.view.show(region.b, False)
+        if not (
+            region := self.find_first_visible_region(
+                self.view.visible_region(), self.view.sel()
+            )
+        ):
+            return
+        self.view.show(region.b)
 
-    def find_first_visible_region(self) -> Union[sublime.Region, None]:
-        visible_region = self.view.visible_region()
+    def find_first_visible_region(
+        self, visible_region: sublime.Region, regions: List[sublime.Region]
+    ) -> Union[sublime.Region, None]:
         return next(
-            (region for region in self.view.sel() if region.intersects(visible_region)),
+            (region for region in regions if region.intersects(visible_region)),
             None,
         )
 
-    def normalize_regions(self, regions: sublime.Selection) -> List[sublime.Region]:
+    def normalize(self, regions: sublime.Selection) -> List[sublime.Region]:
         return [sublime.Region(*sorted((region.a, region.b))) for region in regions]
 
-    def invert_regions(self, regions: sublime.Selection) -> List[sublime.Region]:
+    def invert(self, regions: sublime.Selection) -> List[sublime.Region]:
         return [sublime.Region(r.b, r.a) if r.a < r.b else r for r in regions]
 
-    def are_regions_normalized(self, regions: sublime.Selection) -> bool:
+    def is_normalized(self, regions: sublime.Selection) -> bool:
         return all(r.a < r.b for r in regions)
