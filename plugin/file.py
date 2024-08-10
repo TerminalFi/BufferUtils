@@ -12,7 +12,7 @@ class BufferUtilsNewFileCommand(BufferUtilsHandler, sublime_plugin.WindowCommand
     def run(self, syntax: str, **kwargs) -> None:
         view = self.window.new_file(syntax=syntax)
 
-        settings = get_settings().get("settings", {})
+        settings = get_settings(default={})
         if settings.get("random_buffer_names", False):
             view.set_name(get_buffer_name())
 
