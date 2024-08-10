@@ -12,11 +12,11 @@
     },
     {
         "command": "buffer_utils_set_syntax",
-        "caption": "View: Select Syntax..."
+        "caption": "View: Select Syntax…"
     },
     {
         "command": "buffer_utils_find_regex",
-        "caption": "Find Regex..."
+        "caption": "Find Regex…"
     },
     {
         "command": "buffer_utils_preserve_case",
