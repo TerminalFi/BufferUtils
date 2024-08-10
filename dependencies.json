@@ -1,7 +1,8 @@
 {
     "*": {
         ">=4000": [
-            "vision"
+            "vision",
+            "more_itertools"
         ]
     }
 }
