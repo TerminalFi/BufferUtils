@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, Sequence
 
 import sublime
 import sublime_plugin
@@ -60,7 +60,7 @@ class FilterViewOrPanel:
                 )
         return len(regions)
 
-    def find_view_or_panel(self, view_or_panel_id: str) -> Optional[sublime.View]:
+    def find_view_or_panel(self, view_or_panel_id: str) -> sublime.View | None:
         views: Sequence[sublime.View] = sublime.active_window().views()
         panels: Sequence[sublime.View] = list(
             filter(
@@ -103,7 +103,8 @@ class BufferUtilsViewAndPanelListInputHandler(sublime_plugin.ListInputHandler):
         if not (window := sublime.active_window()):
             return
         views: Sequence[tuple[str, sublime.View]] = [
-            (view.file_name() or view.name(), view) for view in window.views()
+            (view.file_name().split("/")[-1] or view.name(), view)
+            for view in window.views()
         ]
         panels: Sequence[tuple[str, sublime.View]] = [
             (
@@ -141,7 +142,7 @@ class BufferUtilsFilterInputHandler(FilterViewOrPanel, sublime_plugin.TextInputH
         return arg
 
     @debounce(disabled=FilterViewOrPanel.disable_debounce)
-    def preview(self, value) -> Optional[sublime.Html]:
+    def preview(self, value) -> str | sublime.Html | None:
         if not get_settings(key=["settings", "filter"]).get("preview", False):
             return None
 

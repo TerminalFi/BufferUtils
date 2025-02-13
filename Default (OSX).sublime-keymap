@@ -1,0 +1,79 @@
+[
+  {
+    "keys": [
+      "escape"
+    ],
+    "command": "buffer_utils_selection_fields",
+    "args": {
+      "mode": "pop"
+    },
+    "context": [
+      {
+        "key": "is_selection_field"
+      },
+      {
+        "key": "selection_fields_escape_enabled"
+      },
+      // set the default precedence to be less than snippet fields
+      {
+        "key": "has_next_field",
+        "operator": "equal",
+        "operand": false
+      },
+      {
+        "key": "has_prev_field",
+        "operator": "equal",
+        "operand": false
+      },
+      {
+        "key": "panel_visible",
+        "operator": "equal",
+        "operand": false
+      },
+      {
+        "key": "overlay_visible",
+        "operator": "equal",
+        "operand": false
+      },
+      // usually we would use popup_visible, but this is ST3 only
+      {
+        "key": "popup_visible",
+        "operator": "equal",
+        "operand": false
+      },
+      {
+        "key": "auto_complete_visible",
+        "operator": "equal",
+        "operand": false
+      }
+    ]
+  },
+  {
+    "keys": [
+      "tab"
+    ],
+    "command": "buffer_utils_selection_fields",
+    "args": {
+      "mode": "smart"
+    },
+    "context": [
+      {
+        "key": "is_selection_field"
+      },
+      {
+        "key": "selection_fields_tab_enabled"
+      },
+      // set the default precedence to be less than snippet fields
+      {
+        "key": "has_next_field",
+        "operator": "equal",
+        "operand": false
+      },
+      {
+        "key": "auto_complete_visible",
+        "operator": "equal",
+        "operand": false
+      }
+    ]
+  }
+]

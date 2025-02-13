@@ -1,5 +1,13 @@
 [
     {
+        "caption": "Preferences: Buffer Utils Settings",
+        "command": "edit_settings",
+        "args": {
+            "base_file": "${packages}/BufferUtils/BufferUtils.sublime-settings",
+            "default": "// Settings in here override those in \"BufferUtils/BufferUtils.sublime-settings\"\n\n{\n\t$0\n}\n",
+        },
+    },
+    {
         "command": "buffer_utils_new_file",
         "caption": "New File with Syntax",
     },
@@ -19,6 +27,13 @@
         "caption": "Find Regex…"
     },
     {
+        "caption": "Selection as Fields",
+        "command": "buffer_utils_selection_fields",
+        "args": {
+            "mode": "toggle"
+        }
+    },
+    {
         "command": "buffer_utils_preserve_case",
         "caption": "Preserve Case"
     },
@@ -29,5 +44,9 @@
     {
         "command": "buffer_utils_filter_view_or_panel",
         "caption": "Filter View or Panel"
+    },
+    {
+        "command": "rg_search",
+        "caption": "Ripgrep Search"
     }
 ]

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import re
+import subprocess
 from typing import Any, Dict, List, Optional, Sequence, Union
 
 import sublime
@@ -12,15 +13,15 @@ from ..lib.words import get_buffer_name
 from .common import BufferUtilsHandler
 from .constants import EXPRESSION_PREVIEW_REGION, LAST_EXPRESSION
 from .enum import Operation
+from .settings import settings
 from .syntax import SyntaxSelectorListInputHandler
-from .utils import Case, StringAttributes, get_settings
+from .utils import Case, MutableView, StringAttributes
 
 
 class BufferUtilsNewFileCommand(BufferUtilsHandler, sublime_plugin.WindowCommand):
     def run(self, syntax: str, **kwargs) -> None:
         view = self.window.new_file(syntax=syntax)
-
-        if get_settings(key=["settings", "file"]).get("assign_random_name", True):
+        if settings.buffer_assign_random_name:
             view.set_name(get_buffer_name())
 
         if kwargs.get("scratch", False):
@@ -80,7 +81,7 @@ class ExpressionInputHandler(sublime_plugin.TextInputHandler):
             ):
                 return None
 
-        if not get_settings(key=["settings", "find"]).get("preview", True):
+        if not settings.find_preview:
             return
 
         if not value:
@@ -92,7 +93,6 @@ class ExpressionInputHandler(sublime_plugin.TextInputHandler):
         regions = self.view.find_all(value, sublime.IGNORECASE)
         regions = self.update_selection(regions, operation)
         self.view.sel().clear()
-
         self.view.add_regions(
             EXPRESSION_PREVIEW_REGION,
             regions,
@@ -118,16 +118,13 @@ class ExpressionInputHandler(sublime_plugin.TextInputHandler):
             if not self.args.get("subtractive", False)
             else Operation.SUBTRACTIVE
         )
-        scope_setting = (
-            "regex_additive_scope"
+        scope = (
+            settings.find_regex_additive_scope
             if operation == Operation.ADDITIVE
-            else "regex_subtractive_scope"
+            else settings.find_regex_subtractive_scope
         )
 
-        preview_scope = get_settings(key=["settings", "find"]).get(
-            scope_setting, "invalid"
-        )
-        return operation, preview_scope
+        return operation, scope
 
     def update_selection(
         self,
@@ -141,7 +138,7 @@ class ExpressionInputHandler(sublime_plugin.TextInputHandler):
     def cancel(self) -> None:
         self.view.erase_regions(EXPRESSION_PREVIEW_REGION)
 
-        if not get_settings(key=["settings", "find"]).get("persist_expression", True):
+        if not settings.find_persist_expression:
             self.view.settings().set(LAST_EXPRESSION, "")
 
 
@@ -153,7 +150,7 @@ class BufferUtilsFindRegexCommand(sublime_plugin.TextCommand):
         self.update_selection(regions, subtractive)
         self.remove_empty_regions()
 
-        if get_settings(key=["settings", "find"]).get("persist_expression", True):
+        if settings.find_persist_expression:
             self.view.settings().set(LAST_EXPRESSION, expression)
 
     def update_selection(
@@ -306,3 +303,86 @@ class BufferUtilsNormalizeSelectionCommand(sublime_plugin.TextCommand):
 
     def is_normalized(self, regions: sublime.Selection) -> bool:
         return all(r.a < r.b for r in regions)
+
+
+class RgSearchCommand(sublime_plugin.WindowCommand):
+    def run(self):
+        self.window.show_input_panel("Search for:", "", self.on_done, None, None)
+
+    def on_done(self, input):
+        if not input:
+            sublime.error_message("You must provide a search term.")
+            return
+
+        folders = self.window.folders()
+        if not folders:
+            sublime.error_message("No folders found in the current window.")
+            return
+
+        results = []
+        for folder in folders:
+            results.extend(self.run_rg_search(folder, input))
+
+        if results:
+            self.display_results(results)
+        else:
+            sublime.error_message("No matches found.")
+
+    def run_rg_search(self, folder, search_term):
+        try:
+            # Run the ripgrep command
+            process = subprocess.Popen(
+                ["rg", "--vimgrep", search_term, folder],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            output, error = process.communicate()
+
+            if error:
+                sublime.error_message(f"Error running ripgrep: {error.decode('utf-8')}")
+                return []
+
+            # Decode output and split into lines
+            return output.decode("utf-8").splitlines()
+        except Exception as e:
+            sublime.error_message(f"Error running ripgrep: {str(e)}")
+            return []
+
+    def display_results(self, results):
+        # Create a new buffer to display the results
+        output_view = self.window.new_file()
+        output_view.set_name("Ripgrep Results")
+        output_view.set_scratch(True)
+        output_view.assign_syntax("Find Results.hidden-tmLanguage")
+        output_view.settings().set("word_wrap", False)
+        output_view.settings().set("result_file_regex", "^([^ \t].*):$")
+        output_view.settings().set(
+            "result_line_regex",
+            "^ +([0-9]+):",
+        )
+
+        formatted_results = []
+        current_file = ""
+
+        for line in results:
+            parts = line.split(":")
+            if len(parts) < 4:
+                continue
+
+            file_path = parts[0]
+            line_number = parts[1]
+            matched_text = ":".join(parts[3:]).strip()
+
+            if file_path != current_file:
+                if current_file:
+                    formatted_results.append(
+                        ""
+                    )  # Add a blank line between different files
+                formatted_results.append(f"{file_path}:")
+                current_file = file_path
+
+            formatted_results.append(f" {line_number}: {matched_text}")
+        with MutableView(output_view):
+            output_view.run_command(
+                "append", {"characters": "\n".join(formatted_results)}
+            )
