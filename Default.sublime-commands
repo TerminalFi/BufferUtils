@@ -46,6 +46,10 @@
         "caption": "Filter View or Panel"
     },
     {
+        "command": "buffer_utils_close_filter_panel",
+        "caption": "Close Filter Panel"
+    },
+    {
         "command": "rg_search",
         "caption": "Ripgrep Search"
     }

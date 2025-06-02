@@ -18,6 +18,11 @@ from .syntax import SyntaxSelectorListInputHandler
 from .utils import Case, MutableView, StringAttributes
 
 
+class BufferUtilsEraseViewCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        self.view.erase( edit, sublime.Region( 0, self.view.size() ) )
+
+
 class BufferUtilsNewFileCommand(BufferUtilsHandler, sublime_plugin.WindowCommand):
     def run(self, syntax: str, **kwargs) -> None:
         view = self.window.new_file(syntax=syntax)

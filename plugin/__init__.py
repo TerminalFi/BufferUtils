@@ -3,9 +3,10 @@ from .buffer import (
     BufferUtilsNewFileCommand,
     BufferUtilsNormalizeSelectionCommand,
     BufferUtilsPreserveCaseCommand,
+    BufferUtilsEraseViewCommand,
     RgSearchCommand,
 )
-from .filter import BufferUtilsFilterViewOrPanelCommand
+from .filter import BufferUtilsFilterViewOrPanelCommand, BufferUtilsFilterEventListener,BufferUtilsCloseFilterPanelCommand
 from .listeners import EventListener
 from .selection import (
     BufferUtilsSelectionFieldsCommand,
@@ -19,9 +20,12 @@ __all__ = (
     "BufferUtilsNormalizeSelectionCommand",
     "BufferUtilsNewFileCommand",
     "BufferUtilsFilterViewOrPanelCommand",
+    "BufferUtilsEraseViewCommand",
     "BufferUtilsSelectionFieldsCommand",
+    "BufferUtilsCloseFilterPanelCommand",
     "BufferUtilsSetSyntaxCommand",
     "EventListener",
+    "BufferUtilsFilterEventListener",
     "SelectionFieldsContext",
     "RgSearchCommand",
 )
