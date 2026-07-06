@@ -1,0 +1,4 @@
+# e2e final (232858): memsentinel anon + comment table
+cryptography==2.3
+lxml==4.0.0
+werkzeug==0.14.1
