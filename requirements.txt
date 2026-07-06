@@ -1,0 +1,6 @@
+# e2e sticky proof (3rd push, gate now on synchronize)
+urllib3==1.24.1
+flask==0.12.2
+django==2.0.0
+pyjwt==1.5.0
+pillow==8.0.0
