@@ -1,0 +1,4 @@
+# e2e fresh deps (222904): sticky + footer link + blocking marker
+urllib3==1.24.1
+flask==0.12.2
+django==2.0.0
